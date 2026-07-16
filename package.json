@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify:live": "tsx scripts/verify-live.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

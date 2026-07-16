@@ -314,6 +314,7 @@ The tracker uses **balance-diff polling** — it compares each wallet's current 
 
 - **Multiple deposits within one interval** collapse into a single **net `inflow`** (the delta). Individual deposit txs are not attributed. No funds are missed — the on-chain balance is authoritative.
 - **While offline**, no polling happens. On restart, the first poll compares the current balance to the last saved baseline and records the **net change accrued while offline** as one `inflow`. Nothing is lost, but intermediate deposits/amounts/hashes/timing aren't captured — only the net delta.
+- **A deposit and a broadcast-withdrawal in the *same* interval on the *same* wallet.** The balance baseline is sourced only from the chain (updated by polling), so the outflow — already logged at broadcast time — and the deposit are seen together as one net delta. The result: the tracked `inflow` amount is **netted against that outflow** (understated, or, if the interval nets negative, not logged as a separate inflow). The **outflow is always recorded correctly** and the **balance is always correct**; only the inflow's *amount attribution* is affected. This is a deliberate trade-off — decrementing the baseline optimistically at broadcast could invent a **phantom inflow** if the tx were later dropped, so the baseline is kept truthful (chain-sourced) instead.
 - **Detection latency:** default 60s ≪ the 10-minute requirement; the interval is capped at 10 minutes so the SLA holds by construction.
 
 Per-deposit fidelity (individual amounts, senders, hashes) would require scanning blocks / transfer activity instead of diffing balances — intentionally out of scope.
@@ -352,7 +353,14 @@ npm run test:watch
 npm run typecheck
 ```
 
-The tests assert the requirement directly: exact derived addresses for a fixed mnemonic, the `N` / `N+m` / `N−m` invariants, the 1–20 range, exact wei precision (`0.000000000000000001` → `1` wei), and that a built tx's recovered signer equals the source wallet.
+The unit tests assert the requirement directly: exact derived addresses for a fixed mnemonic, the `N` / `N+m` / `N−m` invariants, the 1–20 range, exact wei precision (`0.000000000000000001` → `1` wei), and that a built tx's recovered signer equals the source wallet.
+
+### Live end-to-end verification (optional)
+With the service running and a wallet funded, a harness exercises **every requirement against the live chain** — a real broadcast, real inflow-detection latency, outflow logging, and all API error paths:
+```bash
+npm run verify:live    # spends a little Sepolia ETH; prints PASS/FAIL per requirement
+```
+This is a manual integration check (it broadcasts real transactions), separate from the offline `npm test` suite.
 
 ---
 
