@@ -1,0 +1,17 @@
+# Secrets — NEVER commit
+.env
+.env.local
+*.env
+
+# Runtime state (contains addresses/balances; regenerated on run)
+data/
+
+# Dependencies & build output
+node_modules/
+dist/
+
+# Logs & OS cruft
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
