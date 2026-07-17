@@ -20,20 +20,36 @@ A self-contained slice of a **custody backend** for **Ethereum Sepolia** (native
 
 ## Table of contents
 
-- [Prerequisites](#prerequisites)
-- [Install](#install)
-- [Configuration](#configuration)
-- [Run](#run)
-- [End-to-end walkthrough](#end-to-end-walkthrough) ← start here
-- [API reference](#api-reference)
-- [Common tasks (recipes)](#common-tasks-recipes)
-- [How it works](#how-it-works)
-- [Deposit handling](#deposit-handling)
-- [Security practices](#security-practices)
-- [Troubleshooting](#troubleshooting)
-- [Testing](#testing)
-- [Trade-offs](#trade-offs)
-- [Project layout](#project-layout)
+- [Wallet Watcher \& Withdrawal Builder](#wallet-watcher--withdrawal-builder)
+  - [Table of contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Install](#install)
+  - [Configuration](#configuration)
+  - [Run](#run)
+  - [End-to-end walkthrough](#end-to-end-walkthrough)
+    - [1. Start the service and note the addresses](#1-start-the-service-and-note-the-addresses)
+    - [2. Fund a wallet](#2-fund-a-wallet)
+    - [3. Watch the inflow get detected (≤ 1 poll interval)](#3-watch-the-inflow-get-detected--1-poll-interval)
+    - [4. Build a withdrawal WITHOUT broadcasting (dry run)](#4-build-a-withdrawal-without-broadcasting-dry-run)
+    - [5. Broadcast for real](#5-broadcast-for-real)
+  - [API reference](#api-reference)
+    - [`GET /health`](#get-health)
+    - [`GET /wallets`](#get-wallets)
+    - [`GET /wallets/:index/changes`](#get-walletsindexchanges)
+    - [`POST /withdrawals`](#post-withdrawals)
+  - [Common tasks (recipes)](#common-tasks-recipes)
+  - [How it works](#how-it-works)
+    - [Deterministic wallet generation](#deterministic-wallet-generation)
+    - [Balance tracking](#balance-tracking)
+    - [Withdrawals](#withdrawals)
+    - [Amounts \& precision](#amounts--precision)
+  - [Deposit handling](#deposit-handling)
+  - [Security practices](#security-practices)
+  - [Troubleshooting](#troubleshooting)
+  - [Testing](#testing)
+    - [Live end-to-end verification (optional)](#live-end-to-end-verification-optional)
+  - [Trade-offs](#trade-offs)
+  - [Project layout](#project-layout)
 
 ---
 
@@ -71,9 +87,9 @@ All configuration is via `.env` (gitignored). Copy `.env.example` and fill it in
 ```bash
 node -e "console.log(require('ethers').Wallet.createRandom().mnemonic.phrase)"
 ```
-Paste the result into `MNEMONIC`. Example `.env`:
+Paste the result into `MNEMONIC`. Example `.env` (the mnemonic below is the **public** Hardhat test phrase — a placeholder; generate your own):
 ```ini
-MNEMONIC="brave rail narrow bitter math turn motion that hotel sing wall license"
+MNEMONIC="test test test test test test test test test test test junk"
 RPC_URL="https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY"
 WALLET_COUNT=10
 POLL_INTERVAL_MS=60000
@@ -97,8 +113,8 @@ On startup the service **prints its derived addresses** and begins polling:
 wallet-watcher listening on http://localhost:3000
 network=sepolia wallets=10 pollIntervalMs=60000
 derived addresses:
-  #0 0xB56E86b201BD32a912666bcCAE5db191e79d6AcE
-  #1 0x33FCe94D5A43d3b483f9B87069eaeCBE8B01897A
+  #0 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  #1 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
   ...
 ```
 

@@ -1,7 +1,10 @@
-# Secrets — NEVER commit
+# Secrets
 .env
 .env.local
 *.env
+
+# Personal notes that contain key material (mnemonic / private keys)
+*.local.md
 
 # Runtime state (contains addresses/balances; regenerated on run)
 data/
